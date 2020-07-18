@@ -1,0 +1,145 @@
+:root {
+    --progress-color: #a3d200;
+}
+
+.rooms-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    grid-gap: 20px;
+}
+
+.ready-status {
+    padding-left: 20px;
+    position: relative;
+}
+
+.ready-status::after {
+    content: '';
+    width: 15px;
+    height: 15px;
+    background-color: red;
+    border-radius: 50%;
+    top: 50%;
+    left: 0;
+    transform: translateY(-50%);
+    position: absolute;
+}
+
+.ready-status.ready::after {
+    background-color: greenyellow;
+}
+
+.timer-before-game__count {
+    font-size: 20vmin;
+    font-weight: 500;
+    transform: scale(0);
+    animation-name: bigToSmall;
+    animation-duration: 0.9s;
+    animation-fill-mode: forwards;
+}
+
+.text-window {
+    font-size: 2.2vmin;
+    max-width: 90%;
+    position: relative;
+    font-family: 'Inconsolata', monospace;
+    user-select: none;
+    pointer-events: none;
+}
+
+.text-window__back,
+.text-window__front {
+    white-space: pre-wrap;
+}
+
+.text-window__back {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: -1;
+}
+
+.text-window__back span {
+    background-color: var(--progress-color);
+}
+
+.text-window__back span.helper {
+    border-bottom: 1px solid black;
+    visibility: visible !important;
+    color: transparent;
+    background-color: transparent;
+}
+
+.text-window__back span.accent {
+    background-color: #f65f5f;
+    animation-name: pulse;
+    animation-duration: 2s;
+    animation-fill-mode: backwards;
+}
+
+@keyframes pulse {
+    0%,
+    100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.2;
+    }
+}
+
+@keyframes bigToSmall {
+    to {
+        transform: scale(1);
+        opacity: 0;
+    }
+}
+
+.game {
+    display: grid;
+    grid-template-columns: 0.5fr 1.2fr 0.5fr;
+}
+
+.game-window {
+    position: relative;
+    width: 90vmin;
+    height: 90vmin;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    align-self: center;
+    justify-self: center;
+}
+
+.game-timer {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+}
+
+.finished {
+    background-color: var(--progress-color);
+}
+
+.commentator {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+}
+
+.commentator__message {
+    font-size: 1.5vmin;
+    margin-bottom: 10px;
+    user-select: none;
+    pointer-events: none;
+}
+
+.commentator__img {
+    background-image: url("../img/commentator.svg");
+    background-size: contain;
+    width: 70%;
+    display: block;
+    margin: 0 auto;
+    height: auto;
+
+}

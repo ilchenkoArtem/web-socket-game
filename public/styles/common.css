@@ -1,0 +1,54 @@
+* {
+    line-height: normal;
+    color: var(--main-font-color);
+}
+
+body {
+    font-family: 'Open Sans', sans-serif;
+    padding: 0 30px;
+    box-sizing: border-box;
+}
+
+.full-screen {
+    height: 100vh;
+    width: 100%;
+}
+
+.flex-centered {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.flex {
+    display: flex;
+}
+
+.no-select {
+    user-select: none;
+}
+
+.invisible {
+    pointer-events: none;
+}
+
+.display-none {
+    display: none;
+}
+
+input::placeholder {
+    color: var(--input-placeholder-color);
+}
+
+.modal {
+    background-color: rgba(0, 0, 0, 0.6);
+}
+
+:root {
+    --main-font-color: #333;
+    --main-button-background-color: lightgrey;
+    --main-button-border-color: #999;
+    --input-border-color: #999;
+    --input-placeholder-color: #888;
+    --white: #fff;
+}

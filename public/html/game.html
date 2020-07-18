@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css"
+          integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+    <link rel="stylesheet" href="/styles/common.css">
+    <link rel="stylesheet" href="/styles/game.css">
+    <link rel="preload" href="/img/snail.svg" as="image"/>
+    <link rel="prefetch" href="https://fonts.googleapis.com/css2?family=Inconsolata:wght@500&display=swap">
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300;0,400;0,600;0,700;0,800;1,300;1,400;1,600;1,700;1,800&display=swap" rel="stylesheet">
+    <title>Game</title>
+</head>
+
+<body>
+<div id="root">
+    <div id="rooms-page" class="full-screen">
+        <h1 class="mb-2">Join Room or Create New</h1>
+        <button id="create-room" class="btn btn btn-success mb-2">Create new Room</button>
+        <section id="rooms" class="rooms-list"></section>
+    </div>
+    <div id="game-page" class="full-screen game d-none">
+        <div>
+            <h1 class="mb-2" id="room-title"></h1>
+            <button id="back-to-rooms-list" class="btn btn-outline-info mb-5">Back to rooms list</button>
+
+            <ul class="list-group mt-auto" id="users-list"></ul>
+        </div>
+
+        <div class="game-window border m-2">
+            <div id="timer-counter" class="timer-before-game d-none"></div>
+            <div id="after-start-timer" class="game-timer d-none"></div>
+            <div class="ready-buttons " id="ready-buttons">
+                <button class="btn btn-lg btn-success" id="ready-btn">Ready</button>
+                <button class="btn btn-lg btn-warning d-none" id="not-ready-btn">Not Ready</button>
+            </div>
+            <div id="text-window" class="text-window d-none">
+                <div id="text-front" class="text-window__front"></div>
+                <div class="text-window__back" id="text-back"></div>
+            </div>
+        </div>
+
+        <div class="commentator">
+            <div class="card commentator__message" id="commentator">
+                <div class="card-body">
+                    На улице сейчас немного пасмурно, но на Львов Арена сейчас просто замечательная атмосфера: двигатели рычат, зрители улыбаются а гонщики едва заметно нервничают и готовят своих железных коней к заезду. А комментировать всё это действо буду я, Эскейп Энтерович и я рад вас приветствовать со словами Доброго Вам дня, господа!
+                </div>
+            </div>
+            <img class="commentator__img" src="../img/commentator.svg" alt="commentator" width="910" height="580"/>
+        </div>
+    </div>
+</div>
+<div class="modal fade show d-none" id="result">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title text-center">Top finished user</h5>
+            </div>
+            <div class="modal-body" id="result-finished-list"></div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="close-modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="/socket.io/socket.io.js"></script>
+<script defer type="module" src="/javascript/game.mjs"></script>
+</body>
+</html>
