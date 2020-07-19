@@ -1,33 +1,34 @@
-import {
-    checkStatusFinishedGame,
-    finishGame,
-    getCurrentRoomId,
-    getRoomClients,
-    joinToRoom,
-    leaveFromRoom,
-    readinessCheckAndSentStartGame,
-} from './socketHelpers';
+import socketHelpers from './socketHelpers';
 import {
     checkFreeUsername,
     getRoomsData,
-    getTopUsersScoreList,
     getTopUsersTypedPercentList,
-    rooms,
     updateRoomReadyList,
     updateUserInfo,
+    rooms,
     users,
 } from './storage';
-import MessageGenerator from './MessageGenerator';
 import messageGenerator from './MessageGenerator';
 
 export default (io) => {
     io.on('connection', (socket) => {
+        const {
+            getRoomClients,
+            getCurrentRoomId,
+            checkStatusFinishedGame,
+            finishGame,
+            joinToRoom,
+            leaveFromRoom,
+            readinessCheckAndSentStartGame,
+        } = socketHelpers(io, socket);
+
+        console.debug('getRoomClients', getRoomClients);
         const username = socket.handshake.query.username;
         if (!username) return;
 
         if (checkFreeUsername(username)) {
             updateUserInfo({ id: socket.id, newStatusData: { username } });
-            io.to(socket.id).emit('UPDATE_LIST_ROOMS', getRoomsData(io));
+            io.to(socket.id).emit('UPDATE_LIST_ROOMS', getRoomsData());
         } else {
             socket.emit('CHANGE_USER_NAME', username);
             return;
@@ -38,45 +39,45 @@ export default (io) => {
                 socket.emit('ROOM_NAME_ALREADY_USE', roomId);
                 return;
             }
-            joinToRoom({ roomId, socket, io });
+            joinToRoom(roomId);
         });
 
         socket.on('GET_ME_CURRENT_TOP', (roomId, callback) => {
-            const currentUsersListInRoom = getRoomClients(io, roomId);
+            const currentUsersListInRoom = getRoomClients(roomId);
             const usersTopList = getTopUsersTypedPercentList(currentUsersListInRoom);
             callback(messageGenerator.getCurrentLeadersList(usersTopList));
         });
 
-        socket.on('JOIN_ROOM', (roomId) => {
-            joinToRoom({ roomId, socket, io });
-        });
+        socket.on('JOIN_ROOM', (roomId) => joinToRoom(roomId));
 
         socket.on('LEAVE_ROOM', (roomId) => {
-            leaveFromRoom(io, socket, roomId);
+            leaveFromRoom(roomId);
         });
 
         socket.on('UPDATE_STATUS_READY', ({ status: isReadyToPlay, userId, roomId }) => {
+            const currentUserId = socket.id;
+
             if (isReadyToPlay) {
-                updateRoomReadyList(roomId, socket.id);
+                updateRoomReadyList(roomId, currentUserId);
             } else {
-                updateRoomReadyList(roomId, socket.id, false);
+                updateRoomReadyList(roomId, currentUserId, false);
             }
-            updateUserInfo({ id: socket.id, newStatusData: { isReadyToPlay } });
+            updateUserInfo({ id: currentUserId, newStatusData: { isReadyToPlay } });
             socket.broadcast.to(roomId).emit('UPDATE_STATUS_READY', users.get(userId));
-            readinessCheckAndSentStartGame(io, roomId);
+            readinessCheckAndSentStartGame(roomId);
         });
 
         socket.on('TIMER_FINISHED', (roomId) => {
-            finishGame(io, roomId);
+            finishGame(roomId);
         });
 
         socket.on('UPDATE_TYPED_PROGRESS', (updatedUser) => {
             const { id, isFinished } = updatedUser;
             updateUserInfo({ id, newStatusData: updatedUser });
-            const currentRoomId = getCurrentRoomId(socket);
+            const currentRoomId = getCurrentRoomId();
 
             if (isFinished) {
-                checkStatusFinishedGame(io, currentRoomId);
+                checkStatusFinishedGame(currentRoomId);
                 socket.broadcast
                     .to(currentRoomId)
                     .emit(
@@ -93,8 +94,8 @@ export default (io) => {
         });
 
         socket.on('disconnecting', function () {
-            const currentRoomId = getCurrentRoomId(socket);
-            leaveFromRoom(io, socket, currentRoomId);
+            const currentRoomId = getCurrentRoomId();
+            leaveFromRoom(currentRoomId);
             users.delete(socket.id);
         });
     });

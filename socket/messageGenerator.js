@@ -49,8 +49,8 @@ class MessageGenerator {
     getCurrentLeadersList(usersList) {
         const PARTS_OF_THE_PHRASES = [
             '*username* сейчас на первом месте',
-            ',за ним идёт *username*',
-            ',a третьим идёт *username*',
+            ', за ним идёт *username*',
+            ', a третьим идёт *username*',
         ];
 
         let message = '';
