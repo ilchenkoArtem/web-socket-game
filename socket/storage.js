@@ -50,17 +50,10 @@ export const checkFreeUsername = (newUserName) => {
     return isFree;
 };
 
-export const getTopUsersScoreList = (usersList) =>
+export const getTopUsersList = (usersList, param) =>
     usersList.sort((UserA, UserB) => {
-        if (UserA.score < UserB.score) return -1;
-        if (UserA.score > UserB.score) return 1;
-        return 0;
-    });
-
-export const getTopUsersTypedPercentList = (usersList) =>
-    usersList.sort((UserA, UserB) => {
-        if (UserA.progress < UserB.progress) return -1;
-        if (UserA.progress > UserB.progress) return 1;
+        if (UserA[param] < UserB[param]) return -1;
+        if (UserA[param] > UserB[param]) return 1;
         return 0;
     });
 

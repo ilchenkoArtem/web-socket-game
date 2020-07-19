@@ -14,7 +14,7 @@ import {
     updateUserInfo,
     rooms,
     users,
-    getTopUsersScoreList,
+    getTopUsersList,
 } from './storage';
 import messageGenerator from './messageGenerator';
 
@@ -108,7 +108,10 @@ function socketHelpers(io, socket) {
             updateRoomsInfo(roomId, { isFinishedGame: true, isStarted: false });
             resetUsersInfoAfterGame(roomId);
 
-            const topUsersList = getTopUsersScoreList(users.filter((user) => user.isFinished && user.score));
+            const topUsersList = getTopUsersList(
+                users.filter((user) => user.isFinished && user.score),
+                'score'
+            );
             io.to(roomId).emit(
                 'FINISH_GAME',
                 getRoomClients(roomId),

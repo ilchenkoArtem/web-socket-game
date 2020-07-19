@@ -2,11 +2,11 @@ import socketHelpers from './socketHelpers';
 import {
     checkFreeUsername,
     getRoomsData,
-    getTopUsersTypedPercentList,
     updateRoomReadyList,
     updateUserInfo,
     rooms,
     users,
+    getTopUsersList,
 } from './storage';
 import messageGenerator from './MessageGenerator';
 
@@ -44,7 +44,7 @@ export default (io) => {
 
         socket.on('GET_ME_CURRENT_TOP', (roomId, callback) => {
             const currentUsersListInRoom = getRoomClients(roomId);
-            const usersTopList = getTopUsersTypedPercentList(currentUsersListInRoom);
+            const usersTopList = getTopUsersList(currentUsersListInRoom, 'progress');
             callback(messageGenerator.getCurrentLeadersList(usersTopList));
         });
 

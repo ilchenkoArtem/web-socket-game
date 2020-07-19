@@ -336,7 +336,7 @@ class Game {
 
 class Commentator {
     constructor() {
-        this.MSECOND_DURATION_SHOW_COMMENT = 10000;
+        this.MSECOND_DURATION_SHOW_COMMENT = 15000;
         this.$commentator = document.getElementById('commentator');
         this.idTimer = null;
     }
