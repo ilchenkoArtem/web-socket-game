@@ -36,6 +36,11 @@ body {
     display: none;
 }
 
+.opacity-1 {
+    opacity: 1 !important;
+}
+
+
 input::placeholder {
     color: var(--input-placeholder-color);
 }

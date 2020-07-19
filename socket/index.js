@@ -2,11 +2,23 @@ import {
     checkStatusFinishedGame,
     finishGame,
     getCurrentRoomId,
+    getRoomClients,
     joinToRoom,
     leaveFromRoom,
     readinessCheckAndSentStartGame,
 } from './socketHelpers';
-import { checkFreeUsername, getRoomsData, rooms, updateRoomReadyList, updateUserInfo, users } from './storage';
+import {
+    checkFreeUsername,
+    getRoomsData,
+    getTopUsersScoreList,
+    getTopUsersTypedPercentList,
+    rooms,
+    updateRoomReadyList,
+    updateUserInfo,
+    users,
+} from './storage';
+import MessageGenerator from './MessageGenerator';
+import messageGenerator from './MessageGenerator';
 
 export default (io) => {
     io.on('connection', (socket) => {
@@ -27,6 +39,12 @@ export default (io) => {
                 return;
             }
             joinToRoom({ roomId, socket, io });
+        });
+
+        socket.on('GET_ME_CURRENT_TOP', (roomId, callback) => {
+            const currentUsersListInRoom = getRoomClients(io, roomId);
+            const usersTopList = getTopUsersTypedPercentList(currentUsersListInRoom);
+            callback(messageGenerator.getCurrentLeadersList(usersTopList));
         });
 
         socket.on('JOIN_ROOM', (roomId) => {
@@ -59,9 +77,19 @@ export default (io) => {
 
             if (isFinished) {
                 checkStatusFinishedGame(io, currentRoomId);
+                socket.broadcast
+                    .to(currentRoomId)
+                    .emit(
+                        'COMMENTATOR_MESSAGE',
+                        messageGenerator.getUserFinished(users.get(id).username ?? 'Неизвестаная личность')
+                    );
             }
 
-            socket.broadcast.to(currentRoomId).emit('UPDATE_TYPED_PROGRESS', updatedUser);
+            const { isFinishedGame } = rooms.get(currentRoomId);
+
+            if (!isFinishedGame) {
+                socket.broadcast.to(currentRoomId).emit('UPDATE_TYPED_PROGRESS', updatedUser);
+            }
         });
 
         socket.on('disconnecting', function () {

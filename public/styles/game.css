@@ -132,6 +132,18 @@
     margin-bottom: 10px;
     user-select: none;
     pointer-events: none;
+    opacity: 0;
+    transform: translateY(5%);
+    animation-name: showNewComment;
+    animation-duration: 1s;
+    animation-fill-mode: forwards;
+}
+
+@keyframes showNewComment {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .commentator__img {

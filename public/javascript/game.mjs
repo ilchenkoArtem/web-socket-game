@@ -139,51 +139,6 @@ class TextWindow {
     }
 }
 
-class Modal {
-    constructor(controlGame) {
-        this.$resultModal = document.getElementById('result');
-        this.$finishedList = document.getElementById('result-finished-list');
-        this.$closeBtn = document.getElementById('close-modal');
-
-        this.controlGame = controlGame;
-
-        this.init();
-    }
-
-    getTemplateFinishedUser({ username, score }, index) {
-        return `<p class="d-flex justify-content-between border-bottom">
-                    <b>#${index}</b> <span>${username}</span> <b>${score}s</b>
-                </p>`;
-    }
-
-    getEmptyResult() {
-        return `<img src="/img/snail.svg" class="d-block m-auto" width=150 height="150"/>`;
-    }
-
-    innerUsersListResult(users) {
-        this.$finishedList.innerHTML = users?.length
-            ? users.reduce(
-                  (previous, current, index) => previous + this.getTemplateFinishedUser(current, index + 1),
-                  ''
-              )
-            : this.getEmptyResult();
-    }
-
-    hide() {
-        this.$resultModal.classList.remove('d-block');
-        this.controlGame.resetGameButtons();
-    }
-
-    show(listFinishedUsers) {
-        this.innerUsersListResult(listFinishedUsers);
-        this.$resultModal.classList.add('d-block');
-    }
-
-    init() {
-        this.$closeBtn.addEventListener('click', () => this.hide());
-    }
-}
-
 class Game {
     constructor(socket) {
         this.roomId = null;
@@ -191,10 +146,10 @@ class Game {
         this.socket = socket;
         this.secondForGame = 0;
         this.secondCounterAfterStartGame = 0;
+        this.secondLeaderUpdateRate = 0;
         this.gameTimerId = null;
 
         this.controlTextWindow = new TextWindow(socket, this);
-        this.controlResultModal = new Modal(this);
 
         this.$title = document.getElementById('room-title');
         this.$beforGameTimer = document.getElementById('timer-counter');
@@ -250,16 +205,13 @@ class Game {
                 </li>`;
     }
 
-    resetGameButtons() {
+    resetGameTemplate() {
+        this.$gameTimer.classList.add('d-none');
+        this.controlTextWindow.hide();
         this.$readyBtnsContaine.classList.remove('d-none');
         this.$notReadyBtn.classList.add('d-none');
         this.$readyBtn.classList.remove('d-none');
         this.$backToRoomsBtn.classList.remove('invisible');
-    }
-
-    resetGameTemplate() {
-        this.$gameTimer.classList.add('d-none');
-        this.controlTextWindow.hide();
     }
 
     backToRoomsList() {
@@ -268,19 +220,10 @@ class Game {
         this.socket.emit('LEAVE_ROOM', this.roomId);
     }
 
-    stopGame(users) {
-        const topUsers = users.sort((UserA, UserB) => {
-            if (UserA.score < UserB.score) {
-                return -1;
-            }
-            if (UserA.score > UserB.score) {
-                return 1;
-            }
-            return 0;
-        });
+    stopGame(usersList) {
+        gameControl.updateUsersList(usersList);
         clearInterval(this.gameTimerId);
         this.resetGameTemplate();
-        this.controlResultModal.show(topUsers);
     }
 
     updateUsersList(usersList) {
@@ -303,9 +246,22 @@ class Game {
         this.$beforGameTimer.innerHTML = `<p class="timer-before-game__count">${count}</p>`;
     }
 
+    updateLasLeadersList(count) {
+        if (!(count % this.secondLeaderUpdateRate) && count !== this.secondForGame) {
+            this.socket.emit('GET_ME_CURRENT_TOP', this.roomId, (message) => {
+                commentatorControl.newComment(message);
+            });
+        }
+    }
+
     updateGameTimerTemplate(count) {
         this.secondCounterAfterStartGame = count;
         this.$gameTimer.innerHTML = count + ' second left';
+    }
+
+    updateDataFromGameTimer(count) {
+        this.updateLasLeadersList(count);
+        this.updateGameTimerTemplate(count);
     }
 
     initTimer(duration, updateTimerClb) {
@@ -334,8 +290,9 @@ class Game {
         this.controlTextWindow.init(await response.json());
     }
 
-    async startGame({ secondBeforeStartGame, secondForGame, textId }) {
+    async startGame({ secondBeforeStartGame, secondForGame, secondLeaderUpdateRate, textId }) {
         this.secondForGame = secondForGame;
+        this.secondLeaderUpdateRate = secondLeaderUpdateRate;
         this.$backToRoomsBtn.classList.add('invisible');
         this.$readyBtnsContaine.classList.add('d-none');
         this.$beforGameTimer.classList.remove('d-none');
@@ -346,7 +303,7 @@ class Game {
             this.controlTextWindow.show();
             this.$beforGameTimer.classList.add('d-none');
             this.$gameTimer.classList.remove('d-none');
-            await this.initTimer(secondForGame, (count) => this.updateGameTimerTemplate(count));
+            await this.initTimer(secondForGame, (count) => this.updateDataFromGameTimer(count));
 
             socket.emit('TIMER_FINISHED', this.roomId, (users) => {
                 console.log('users', users);
@@ -378,13 +335,21 @@ class Game {
 }
 
 class Commentator {
-    constructor(props) {
-        this.MSECOND_DURATION_SHOW_COMMENT = 15000;
+    constructor() {
+        this.MSECOND_DURATION_SHOW_COMMENT = 10000;
         this.$commentator = document.getElementById('commentator');
         this.idTimer = null;
     }
 
-    showComment() {
+    getMessageTemplate(message) {
+        console.log('message', message);
+        return `<div class="card commentator__message">
+                    <div class="card-body">${message}</div>
+                </div>`;
+    }
+
+    showComment(comment) {
+        this.$commentator.innerHTML = this.getMessageTemplate(comment);
         this.$commentator.classList.remove('d-none');
 
         this.idTimer = setTimeout(() => this.hideComment(), this.MSECOND_DURATION_SHOW_COMMENT);
@@ -395,8 +360,9 @@ class Commentator {
     }
 
     newComment(comment) {
+        console.log('comment', comment);
         clearTimeout(this.idTimer);
-        this.$commentator.innerHTML = comment;
+        this.showComment(comment);
     }
 }
 
@@ -408,19 +374,23 @@ socket.on('CHANGE_USER_NAME', (username) => {
     window.location.replace('/login');
 });
 
-socket.on('ROOM_JOIN_DONE', (clients) => {
-    gameControl.initGameRoom(clients);
+socket.on('ROOM_JOIN_DONE', ({ commentatorMessage, ...roomData }) => {
+    commentatorControl.newComment(commentatorMessage);
+    gameControl.initGameRoom(roomData);
 });
 
-socket.on('START_GAME', (data) => {
-    const { users } = data;
-    console.log('users', users);
-    gameControl.startGame(data);
+socket.on('COMMENTATOR_MESSAGE', (message) => {
+    commentatorControl.newComment(message);
 });
 
-socket.on('FINISH_GAME', (finishedUsers, restedUsersList) => {
-    gameControl.updateUsersList(restedUsersList);
-    gameControl.stopGame(finishedUsers);
+socket.on('START_GAME', ({ commentatorMessage, ...roomData }) => {
+    commentatorControl.newComment(commentatorMessage);
+    gameControl.startGame(roomData);
+});
+
+socket.on('FINISH_GAME', (users, commentatorMessage) => {
+    gameControl.stopGame(users);
+    commentatorControl.newComment(commentatorMessage);
 });
 
 socket.on('GAME_UPDATE_USERS_LIST', (clients) => {
@@ -446,5 +416,6 @@ socket.on('UPDATE_LIST_ROOMS', (data) => {
 
 const roomsListControl = new RoomsList(socket, $roomsPage);
 const gameControl = new Game(socket, roomsListControl);
+const commentatorControl = new Commentator();
 
 $createNewRoomBtn.addEventListener('click', () => roomsListControl.createNewRoom());

@@ -8,9 +8,9 @@ export const updateUserInfo = ({ id, newStatusData = {}, isNew = false }) => {
         id,
         isReadyToPlay: false,
         username: '',
-        typedPercent: 0,
         isFinished: false,
         score: null,
+        progress: 0,
     };
     const currentStatusData = users.get(id) ?? {};
 
@@ -49,6 +49,20 @@ export const checkFreeUsername = (newUserName) => {
     });
     return isFree;
 };
+
+export const getTopUsersScoreList = (usersList) =>
+    usersList.sort((UserA, UserB) => {
+        if (UserA.score < UserB.score) return -1;
+        if (UserA.score > UserB.score) return 1;
+        return 0;
+    });
+
+export const getTopUsersTypedPercentList = (usersList) =>
+    usersList.sort((UserA, UserB) => {
+        if (UserA.progress < UserB.progress) return -1;
+        if (UserA.progress > UserB.progress) return 1;
+        return 0;
+    });
 
 export const updateRoomCountUsers = (roomId, difference) => {
     const currentUsersCount = rooms.get(roomId)?.usersCount ?? 0;

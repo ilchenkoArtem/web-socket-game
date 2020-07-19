@@ -1,4 +1,9 @@
-import { SECONDS_TIMER_BEFORE_START_GAME, SECONDS_FOR_GAME, MINIMUM_USERS_FOR_START_GAME } from './config';
+import {
+    SECONDS_TIMER_BEFORE_START_GAME,
+    SECONDS_FOR_GAME,
+    MINIMUM_USERS_FOR_START_GAME,
+    SECOND_LEADER_UPDATE_RATE,
+} from './config';
 import { getRandomInt } from '../helper';
 import { texts } from '../data';
 import {
@@ -9,7 +14,9 @@ import {
     updateUserInfo,
     rooms,
     users,
+    getTopUsersScoreList,
 } from './storage';
+import messageGenerator from './messageGenerator';
 
 export const readinessCheckAndSentStartGame = (io, roomId) => {
     const { usersCount, usersReady, isStarted } = rooms.get(roomId);
@@ -17,11 +24,14 @@ export const readinessCheckAndSentStartGame = (io, roomId) => {
     if (usersCount >= MINIMUM_USERS_FOR_START_GAME && usersCount === usersReady.size && !isStarted) {
         updateRoomsInfo(roomId, { isStarted: true, isFinishedGame: false, usersReady: new Set() });
 
+        const usersInCurrentRoom = getRoomClients(io, roomId);
         io.in(roomId).emit('START_GAME', {
             secondBeforeStartGame: SECONDS_TIMER_BEFORE_START_GAME,
             secondForGame: SECONDS_FOR_GAME,
+            secondLeaderUpdateRate: SECOND_LEADER_UPDATE_RATE,
             textId: getRandomInt(0, texts.length),
-            users: getRoomClients(io, roomId),
+            users: usersInCurrentRoom,
+            commentatorMessage: messageGenerator.getUserNameList(usersInCurrentRoom),
         });
 
         sentUpdateListRoom(io);
@@ -48,6 +58,8 @@ export const getRoomClients = (io, roomId) => {
     return usersList;
 };
 
+const getCurrentUser = (socket) => users.get(socket.id);
+
 export const joinToRoom = ({ roomId, io, socket }) => {
     const prevRoomId = getCurrentRoomId(socket);
     if (prevRoomId === roomId) {
@@ -66,8 +78,12 @@ export const joinToRoom = ({ roomId, io, socket }) => {
             users: getRoomClients(io, roomId),
             roomName: roomId,
             currentUserId: socket.id,
+            commentatorMessage: messageGenerator.getHelloMessage(),
         });
 
+        socket.broadcast
+            .to(roomId)
+            .emit('COMMENTATOR_MESSAGE', messageGenerator.getJoinNewUser(getCurrentUser(socket).username));
         sentUpdateGameUsersList(io, socket, roomId);
     });
 };
@@ -91,10 +107,11 @@ export const finishGame = (io, roomId) => {
         updateRoomsInfo(roomId, { isFinishedGame: true, isStarted: false });
         resetUsersInfoAfterGame(io, roomId);
 
+        const topUsersList = getTopUsersScoreList(users.filter((user) => user.isFinished && user.score));
         io.to(roomId).emit(
             'FINISH_GAME',
-            users.filter((user) => user.isFinished && user.score),
-            getRoomClients(io, roomId)
+            getRoomClients(io, roomId),
+            messageGenerator.getFinishGameMessage(topUsersList)
         );
 
         sentUpdateListRoom(io);
@@ -103,8 +120,6 @@ export const finishGame = (io, roomId) => {
 
 export const checkStatusFinishedGame = (io, roomId) => {
     const users = getRoomClients(io, roomId);
-
-    console.log('users', users);
     if (users.every((user) => user.isFinished)) {
         finishGame(io, roomId);
     }
