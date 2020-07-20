@@ -57,8 +57,8 @@ class MessageGenerator {
 
         for (let i = 0; i < usersList.length; i++) {
             const currentUserName = usersList[i]?.username;
-
-            if (!currentUserName) {
+            const partMessage = PARTS_OF_THE_PHRASES[i];
+            if (!currentUserName || !partMessage) {
                 break;
             }
             message += this.replaceTemplateToValue(PARTS_OF_THE_PHRASES[i], currentUserName);

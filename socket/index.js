@@ -6,7 +6,7 @@ import {
     updateUserInfo,
     rooms,
     users,
-    getTopUsersList,
+    getTopUsersProgressList,
 } from './storage';
 import messageGenerator from './MessageGenerator';
 
@@ -44,7 +44,7 @@ export default (io) => {
 
         socket.on('GET_ME_CURRENT_TOP', (roomId, callback) => {
             const currentUsersListInRoom = getRoomClients(roomId);
-            const usersTopList = getTopUsersList(currentUsersListInRoom, 'progress');
+            const usersTopList = getTopUsersProgressList(currentUsersListInRoom);
             callback(messageGenerator.getCurrentLeadersList(usersTopList));
         });
 
@@ -68,7 +68,7 @@ export default (io) => {
         });
 
         socket.on('TIMER_FINISHED', (roomId) => {
-            finishGame(roomId);
+            roomId && finishGame(roomId);
         });
 
         socket.on('UPDATE_TYPED_PROGRESS', (updatedUser) => {
