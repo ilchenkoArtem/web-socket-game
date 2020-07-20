@@ -22,7 +22,6 @@ export default (io) => {
             readinessCheckAndSentStartGame,
         } = socketHelpers(io, socket);
 
-        console.debug('getRoomClients', getRoomClients);
         const username = socket.handshake.query.username;
         if (!username) return;
 
