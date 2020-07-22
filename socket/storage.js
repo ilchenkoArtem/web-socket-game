@@ -40,7 +40,17 @@ export const updateRoomsInfo = (id, newStatusData = {}) => {
     rooms.set(id, newData);
 };
 
-export const checkFreeUsername = (newUserName) => users.some(({ username }) => username === newUserName);
+export const checkFreeUsername = (newUserName) => {
+    let isFree = false;
+
+    users.forEach(({ username }) => {
+        if (username === newUserName) {
+            isFree = false;
+        }
+    });
+
+    return isFree;
+};
 
 export const getTopUsersProgressList = (usersList) =>
     usersList.sort((UserA, UserB) => {
