@@ -153,7 +153,7 @@ class Game {
         this.controlTextWindow = new TextWindow(socket, this);
 
         this.$title = document.getElementById('room-title');
-        this.$beforGameTimer = document.getElementById('timer-counter');
+        this.$beforeGameTimer = document.getElementById('timer-counter');
         this.$gameTimer = document.getElementById('after-start-timer');
         this.$backToRoomsBtn = document.getElementById('back-to-rooms-list');
         this.$usersList = document.getElementById('users-list');
@@ -244,7 +244,7 @@ class Game {
     }
 
     updateBeforeGameTimerTemplate(count) {
-        this.$beforGameTimer.innerHTML = `<p class="timer-before-game__count">${count}</p>`;
+        this.$beforeGameTimer.innerHTML = `<p class="timer-before-game__count">${count}</p>`;
     }
 
     updateLasLeadersList(count) {
@@ -295,13 +295,13 @@ class Game {
         this.secondLeaderUpdateRate = secondLeaderUpdateRate;
         this.$backToRoomsBtn.classList.add('invisible');
         this.$readyBtnsContaine.classList.add('d-none');
-        this.$beforGameTimer.classList.remove('d-none');
+        this.$beforeGameTimer.classList.remove('d-none');
         this.loadTextForGame(textId);
         await this.initTimer(secondBeforeStartGame, (count) => this.updateBeforeGameTimerTemplate(count));
 
         setTimeout(async () => {
             this.controlTextWindow.show();
-            this.$beforGameTimer.classList.add('d-none');
+            this.$beforeGameTimer.classList.add('d-none');
             this.$gameTimer.classList.remove('d-none');
             await this.initTimer(secondForGame, (count) => this.updateDataFromGameTimer(count));
 

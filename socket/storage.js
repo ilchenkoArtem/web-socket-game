@@ -41,7 +41,7 @@ export const updateRoomsInfo = (id, newStatusData = {}) => {
 };
 
 export const checkFreeUsername = (newUserName) => {
-    let isFree = false;
+    let isFree = true;
 
     users.forEach(({ username }) => {
         if (username === newUserName) {
