@@ -80,14 +80,15 @@ class TextWindow {
 
     updateBackText() {
         const currentSymbol = document.getElementById(`symbol-${this.counterTypedSymbols}`);
-        console.log('currentSymbol', currentSymbol);
+
         currentSymbol.removeAttribute('class');
         currentSymbol.nextElementSibling?.classList.add('helper');
     }
 
     handlerKeyDown(e) {
-        console.log(e);
-        if (this.BLOCK_KEYS.some((blockKey) => blockKey === e.key)) return;
+        const isBlockedKeys = this.BLOCK_KEYS.some((blockKey) => blockKey === e.key);
+
+        if (isBlockedKeys) return;
 
         if (e.key === this.text[this.counterTypedSymbols]) {
             this.updateBackText();
@@ -284,7 +285,6 @@ class Game {
     async loadTextForGame(textIndex) {
         const response = await fetch(`/api/get-text/${textIndex}`);
         if (!response.ok) {
-            console.error(response.status);
             alert('Ooops... Error receiving text');
         }
         this.controlTextWindow.init(await response.json());
@@ -306,7 +306,6 @@ class Game {
             await this.initTimer(secondForGame, (count) => this.updateDataFromGameTimer(count));
 
             socket.emit('TIMER_FINISHED', this.roomId, (users) => {
-                console.log('users', users);
                 this.stopGame(users);
             });
         }, 1000); //NOTE: сss before game timer animation compensation
@@ -342,7 +341,6 @@ class Commentator {
     }
 
     getMessageTemplate(message) {
-        console.log('message', message);
         return `<div class="card commentator__message">
                     <div class="card-body">${message}</div>
                 </div>`;
@@ -360,7 +358,6 @@ class Commentator {
     }
 
     newComment(comment) {
-        console.log('comment', comment);
         clearTimeout(this.idTimer);
         this.showComment(comment);
     }
@@ -368,7 +365,7 @@ class Commentator {
 
 const socket = io('', { query: { username } });
 
-socket.on('CHANGE_USER_NAME', (username) => {
+socket.on('NAME_ALREADY_IN_USE', (username) => {
     alert(`Name: "${username}" already use`);
     sessionStorage.removeItem('username');
     window.location.replace('/login');

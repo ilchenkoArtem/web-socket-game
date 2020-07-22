@@ -29,7 +29,7 @@ export default (io) => {
             updateUserInfo({ id: socket.id, newStatusData: { username } });
             io.to(socket.id).emit('UPDATE_LIST_ROOMS', getRoomsData());
         } else {
-            socket.emit('CHANGE_USER_NAME', username);
+            socket.emit('NAME_ALREADY_IN_USE', username);
             return;
         }
 
