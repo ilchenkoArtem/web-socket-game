@@ -66,6 +66,7 @@ class TextWindow {
         this.$textWindow = document.getElementById('text-window');
         this.$fronText = document.getElementById('text-front');
         this.$textBack = document.getElementById('text-back');
+        this.$backSymbols = null;
 
         this.handlerKeyDown = this.handlerKeyDown.bind(this);
     }
@@ -75,14 +76,15 @@ class TextWindow {
     }
 
     accentValidSymbol() {
-        document.getElementById(`symbol-${this.counterTypedSymbols}`)?.classList.add('accent');
+        this.$backSymbols[this.counterTypedSymbols]?.classList.add('accent');
     }
 
     updateBackText() {
-        const currentSymbol = document.getElementById(`symbol-${this.counterTypedSymbols}`);
+        const currentSymbol = this.$backSymbols[this.counterTypedSymbols];
+        const nextSymbol = this.$backSymbols[this.counterTypedSymbols + 1];
 
         currentSymbol.removeAttribute('class');
-        currentSymbol.nextElementSibling?.classList.add('helper');
+        nextSymbol?.classList.add('helper');
     }
 
     handlerKeyDown(e) {
@@ -109,7 +111,7 @@ class TextWindow {
 
     getTemplateSpanBackText(symbol, index) {
         const helperClass = index === 0 ? 'helper' : '';
-        return `<span id="symbol-${index}" class="invisible ${helperClass}">${symbol}</span>`;
+        return `<span class="back-symbol invisible ${helperClass}">${symbol}</span>`;
     }
 
     getSpanBlocksForFrontText(text) {
@@ -136,6 +138,7 @@ class TextWindow {
         this.counterTextSymbols = text.length - 1;
         this.$fronText.innerHTML = this.getSpanBlocksForFrontText(text);
         this.$textBack.innerHTML = this.getSpanBlocksForBackText(text);
+        this.$backSymbols = document.querySelectorAll('.back-symbol');
         this.initKeyHandler();
     }
 }
