@@ -7,7 +7,7 @@ import { STATIC_PATH, PORT } from './config';
 
 const app = express();
 const httpServer = http.createServer(app);
-const io = socketIO(httpServer);
+const io = socketIO.listen(httpServer);
 
 app.use(express.static(STATIC_PATH));
 routes(app);
